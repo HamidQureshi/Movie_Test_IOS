@@ -1,8 +1,8 @@
 //
-//  ContentView.swift
+//  MovieList.swift
 //  Movie_Test_IOS
 //
-//  Created by Hamid Qureshi on 09/11/2019.
+//  Created by Hamid Qureshi on 12/11/2019.
 //  Copyright © 2019 Hamid Qureshi. All rights reserved.
 //
 
@@ -11,28 +11,31 @@ import Alamofire
 import SwiftyJSON
 import SDWebImageSwiftUI
 
-//struct Movie: Identifiable {
-//    let id: Int
-//    let title: String
-//    let averageVote: Float
-//    let releaseData: String
-//    let poster: String
-//    let favourite: Bool
-//}
-
-struct ContentView: View {
+struct MovieList: View {
     
-    @State var movieList = [Movie]()
+//    @State var movieList = [Movie]()
+//    @State var showFavoritesOnly = false
+    
+    @EnvironmentObject var movieData: MovieData
     
     let posterURL = "http://image.tmdb.org/t/p/w185/"
-
     
         var body: some View {
             
             NavigationView{
-            List(movieList) { movie in
+            List {
                 
-                MovieRow(movie: movie)
+                Toggle(isOn: $movieData.showFavoritesOnly) {
+                                   Text("Favorites only")
+                               }
+                
+                ForEach(movieData.movieList) { movie in
+                    if !self.movieData.showFavoritesOnly || movie.favourite {
+    //                    NavigationLink(destination: MovieDetail(movie: movie)) {
+                            MovieRow(movie: movie)
+    //                    }
+                    }
+                }
 
             }
             .navigationBarTitle(Text("Movie List"))
@@ -51,9 +54,10 @@ struct ContentView: View {
     }
     
     func getMovies(){
+        print("get movies called")
         let url = "https://api.themoviedb.org/3/movie/popular?"
         let parameters = ["api_key": "95e7498e31198dab04d8a5965a53f252",
-                          "page": "1"]
+                          "page": "\(self.movieData.page)"]
         
         Alamofire.request(url,
                           method: .get,
@@ -86,13 +90,13 @@ struct ContentView: View {
                                       averageVote: movieObj["vote_average"].float ?? 0.0,
                                       releaseData: movieObj["release_date"].string ?? "",
                                       poster: movieObj["poster_path"].string ?? "",
-                                       favourite: false)
+                                       favourite: true)
 
 
-                    self.movieList.append(movie)
+                    self.movieData.movieList.append(movie)
                 }
                 
-    
+                self.movieData.page += 1
              }
          }
         
@@ -100,8 +104,10 @@ struct ContentView: View {
     
     }
 
-struct ContentView_Previews: PreviewProvider {
+struct MovieList_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        MovieList()
+        .environmentObject(MovieData())
+
     }
 }

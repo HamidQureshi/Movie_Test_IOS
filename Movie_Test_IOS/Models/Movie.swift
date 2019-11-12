@@ -14,5 +14,5 @@ struct Movie: Identifiable, Hashable, Codable {
     let averageVote: Float
     let releaseData: String
     let poster: String
-    let favourite: Bool
+    var favourite: Bool
 }
